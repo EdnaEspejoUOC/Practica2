@@ -33,9 +33,19 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(dplyr)
 
-totalData <- read.csv('winequality-red.csv',stringsAsFactors = FALSE)
-filas=dim(totalData)[1]
+#Cargamos las dos fuentes de datos correspondientes a cada tipo de vino de manera independiente
+data1<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv",header=TRUE,sep=";")
+attach(data1)
 
+data2<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv",header=TRUE,sep=";")
+attach(data2)
+
+#Se incluye una columna con el tipo de Vino (Red,White) con el fin de unificar las fuentes y poder diferenciar los vinos
+data1$color <-"Red"
+data2$color <-"White"
+
+#Se unen la fuentes de datos para el analisis:
+totalData <- rbind(data1, data2)
 
 ```
 
@@ -48,6 +58,20 @@ summary(totalData)
 ```
 
 Se puede observar que todas las variables presentes en el dataset son númericos.
+
+Descripción de las variables:
+1. fixed acidity: la mayoría de los ácidos involucrados en el vino o fijos o no volátiles
+2. volatile acidity: Describe el nivel de acido acetico en el vino, en niveles altos provoca un sabor desagradable
+3. citric acid: Nivel de acido citrico en el vino
+4. residual sugar: Cantidad de azúcar que queda después de que se detiene el proceso de fermentación
+5. chlorides: Cantidad de sal en el vino
+6. free sulfur dioxide: Cantidad de formas libres dioxido de azufre, este componente previene el crecimiento microbiano y la oxidación del vino
+7. total sulfur dioxide: Cantidad de formas libres y unidas de dioxido de azufre
+8. density: Describe el nivel de densidad del vino
+9. PH: describe qué tan ácido o básico es un vino en una escala de 0 (muy ácido) a 14 (muy básico)
+10. sulphates: aditivo del vino que puede contribuir a los niveles de dioxido de azufre
+11. alcohol: el porcentaje de contenido de alcohol del vino
+12. color: describe el tipo de vino (variable incluida manualmente)
 
 
 3.Estructura general de los datos
@@ -62,6 +86,22 @@ Seguimos observando el tipo de datos presente en nuestro conjunto de datos.
 
 
 4. Valores nulos o perdidos
+
+```{r} {r echo=TRUE, message=FALSE, warning=FALSE}
+
+colSums(is.na(data))
+colSums(data=="")
+colSums(data=="?")
+
+```
+No se identifican valores vacios o valores perdidos, por lo cual no se le realiza cambio a la base de datos. Y se procede a validar los valores en ceros (0)
+
+```{r}
+
+colSums(data==0.0)
+
+```
+Se identifican 151 valores en 0 para el campo citric.acid, pero según el analisis preliminar de los datos es posible que sea un valor valido ya que no esta fuera del rango
 
 5. Outliers
 
