@@ -89,16 +89,16 @@ Seguimos observando el tipo de datos presente en nuestro conjunto de datos.
 
 ```{r} {r echo=TRUE, message=FALSE, warning=FALSE}
 
-colSums(is.na(data))
-colSums(data=="")
-colSums(data=="?")
+colSums(is.na(totalData))
+colSums(totalData=="")
+colSums(totalData=="?")
 
 ```
 No se identifican valores vacios o valores perdidos, por lo cual no se le realiza cambio a la base de datos. Y se procede a validar los valores en ceros (0)
 
 ```{r}
 
-colSums(data==0.0)
+colSums(totalData==0.0)
 
 ```
 Se identifican 151 valores en 0 para el campo citric.acid, pero según el analisis preliminar de los datos es posible que sea un valor valido ya que no esta fuera del rango
