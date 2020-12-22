@@ -87,7 +87,7 @@ Seguimos observando el tipo de datos presente en nuestro conjunto de datos.
 
 4. Valores nulos o perdidos
 
-```{r} {r echo=TRUE, message=FALSE, warning=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 
 colSums(is.na(totalData))
 colSums(totalData=="")
