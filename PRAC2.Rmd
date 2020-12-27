@@ -24,7 +24,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # Preparación de los datos
 
 
-## Estructura y composición general de los datos
 
 1. Cargamos los datos
 
@@ -106,5 +105,250 @@ Se identifican 151 valores en 0 para el campo citric.acid, pero según el analis
 5. Outliers
 
 
+Aplicamos un boxplot a cada una de las variables para verificar la existencia de outliers
+
+```{r}
+
+boxplot(totalData$fixed.acidity)
+
+boxplot(totalData$volatile.acidity)
+
+boxplot(totalData$citric.acid)
 
 
+boxplot(totalData$residual.sugar)
+
+
+boxplot(totalData$chlorides)
+
+
+boxplot(totalData$free.sulfur.dioxide)
+
+
+boxplot(totalData$total.sulfur.dioxide)
+
+
+boxplot(totalData$density)
+
+
+boxplot(totalData$pH)
+
+
+boxplot(totalData$sulphates)
+
+
+boxplot(totalData$alcohol)
+
+
+boxplot(totalData$quality)
+
+boxplot(totalData$density_column)
+
+
+
+
+```
+
+
+Identificamos las columnas que presentan outliers para realizar la sustitución, pero sólo aquellas variables que presentan valores con una distancia grande, en este caso son las siguientes variales
+
+1. citric.acid
+2. residual.sugar
+3. free.sulfur.dioxide
+4. density
+5. alcohol
+
+
+
+```{r}
+
+totalData[totalData$citric.acid > 1.1,]$citric.acid <- median(totalData$citric.acid)
+totalData[totalData$residual.sugar > 50,]$residual.sugar <- median(totalData$residual.sugar)
+totalData[totalData$free.sulfur.dioxide > 250,]$free.sulfur.dioxide <- median(totalData$free.sulfur.dioxide)
+
+```
+
+Tratamos también las otras dos variables que presentan outliers debajo y arriba de los percentiles 0.05 y 0.95
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+impute_outliers <- function(x, removeNA = TRUE){
+  quantiles <- quantile(x, c(0.05, 0.95), na.rm = removeNA)
+  x[x<quantiles[1]] <- mean(x, na.rm = removeNA)
+  x[x>quantiles[2]] <- median(x, na.rm = removeNA)
+  x
+}
+
+#se envía el atributo con el outlier a la función.
+density_column <- impute_outliers(totalData$density)
+
+#se crea la columna en el dataset
+totalData <- totalData%>%mutate(density_column=density_column)
+
+```
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+
+#se envía el atributo con el outlier a la función.
+alcohol_column <- impute_outliers(totalData$alcohol)
+
+#se crea la columna en el dataset
+totalData <- totalData%>%mutate(alcohol_column=alcohol_column)
+
+```
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+
+#se envía el atributo con el outlier a la función.
+quality_column <- impute_outliers(totalData$quality)
+
+#se crea la columna en el dataset
+totalData <- totalData%>%mutate(quality_column=quality_column)
+
+```
+
+
+# Análisis exploratiorio
+
+
+1. Planficiación
+
+
+Antes de utilizar un conjunto de datos para realizar un análisis y entrenar modelos. Es necesario ver la distribución, correlación y relación de las variables. Para ellos se usará el random forest y ver las importantes de las variables de acuerdo al tipo de vino,ya sea, blanco o rojo.
+
+
+
+2. Normalidad y homogeneidad de la varianza
+
+2.1 Normalidad para cada una de las variables
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+ks.test(totalData$fixed.acidity, pnorm, mean(totalData$fixed.acidity), sd(totalData$fixed.acidity))
+hist(totalData$fixed.acidity)
+
+
+ks.test(totalData$volatile.acidity, pnorm, mean(totalData$volatile.acidity), sd(totalData$volatile.acidity))
+hist(totalData$volatile.acidity)
+
+
+ks.test(totalData$citric.acid, pnorm, mean(totalData$citric.acid), sd(totalData$citric.acid))
+hist(totalData$citric.acid)
+
+
+ks.test(totalData$residual.sugar, pnorm, mean(totalData$residual.sugar), sd(totalData$residual.sugar))
+hist(totalData$residual.sugar)
+
+
+ks.test(totalData$chlorides, pnorm, mean(totalData$chlorides), sd(totalData$chlorides))
+hist(totalData$chlorides)
+
+
+ks.test(totalData$free.sulfur.dioxide, pnorm, mean(totalData$free.sulfur.dioxide), sd(totalData$free.sulfur.dioxide))
+hist(totalData$free.sulfur.dioxide)
+
+
+ks.test(totalData$total.sulfur.dioxide, pnorm, mean(totalData$total.sulfur.dioxide), sd(totalData$total.sulfur.dioxide))
+hist(totalData$total.sulfur.dioxide)
+
+
+ks.test(totalData$density_column, pnorm, mean(totalData$density_column), sd(totalData$density_column))
+hist(totalData$density_column)
+
+
+ks.test(totalData$pH, pnorm, mean(totalData$pH), sd(totalData$pH))
+hist(totalData$pH)
+
+ks.test(totalData$sulphates, pnorm, mean(totalData$sulphates), sd(totalData$sulphates))
+hist(totalData$sulphates)
+
+ks.test(totalData$alcohol_column, pnorm, mean(totalData$alcohol_column), sd(totalData$alcohol_column))
+hist(totalData$alcohol_column)
+
+ks.test(totalData$quality_column, pnorm, mean(totalData$quality_column), sd(totalData$quality_column))
+hist(totalData$quality_column)
+
+
+```
+
+
+De acuerdon la prueba de kolmorogov y gráficos, las variables presentan una distribución normal en los valores.
+
+
+3. Aplicación de pruebas
+
+
+3.1 Ahora analizaremos las variables más importantes según el color del vino o tipo
+
+
+
+```{r message= FALSE, warning=FALSE}
+
+
+#install.packages("randomForest")
+library(randomForest)
+library(tibble)
+
+
+totalData$color <- as.factor(totalData$color)
+
+
+modelo_randforest <- randomForest(formula = color ~ . ,
+                                  data = totalData,
+                                  mtry = 5,
+                                  importance = TRUE, 
+                                  ntree = 1000)
+
+```
+
+
+3.2 Ver gráfico sobre variables más importantes para determinar el color
+
+```{r message= FALSE, warning=FALSE}
+
+importance <- as.data.frame(modelo_randforest$importance)
+importance <- rownames_to_column(importance,var = "variable")
+
+library(ggplot2)
+
+p1 <- ggplot(data = importance, aes(x = reorder(variable, MeanDecreaseAccuracy),
+                               y = MeanDecreaseAccuracy,
+                               fill = MeanDecreaseAccuracy)) +
+      labs(x = "variable", title = "Reducción de Accuracy") +
+      geom_col() +
+      coord_flip() +
+      theme_bw() +
+      theme(legend.position = "bottom")
+
+p2 <- ggplot(data = importance, aes(x = reorder(variable, MeanDecreaseGini),
+                               y = MeanDecreaseGini,
+                               fill = MeanDecreaseGini)) +
+      labs(x = "variable", title = "Reducción de pureza (Gini)") +
+      geom_col() +
+      coord_flip() +
+      theme_bw() +
+      theme(legend.position = "bottom")
+
+#install.packages("ggpubr")
+
+library(ggpubr)
+
+ggarrange(p1, p2)
+
+```
+
+Según el random forest, las variables más importantes para identificar el vino blanco o rojo son:
+
+* total.sulfur.dioxide
+* chlorides
+* volatile.acidity
+* density
+
+
+# Otros gráicos
