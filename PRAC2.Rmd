@@ -142,7 +142,7 @@ boxplot(totalData$alcohol)
 
 boxplot(totalData$quality)
 
-boxplot(totalData$density_column)
+
 
 
 
@@ -210,6 +210,16 @@ quality_column <- impute_outliers(totalData$quality)
 
 #se crea la columna en el dataset
 totalData <- totalData%>%mutate(quality_column=quality_column)
+
+```
+
+
+Muestra del boxplot de una de las nuevas columnas
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+
+boxplot(totalData$density_column)
 
 ```
 
@@ -300,7 +310,7 @@ totalData$color <- as.factor(totalData$color)
 
 
 modelo_randforest <- randomForest(formula = color ~ . ,
-                                  data = totalData,
+                                  data = totalData[,c(1,2,3,4,5,6,7,9,10,13,14,15)],
                                   mtry = 5,
                                   importance = TRUE, 
                                   ntree = 1000)
@@ -348,7 +358,17 @@ Según el random forest, las variables más importantes para identificar el vino
 * total.sulfur.dioxide
 * chlorides
 * volatile.acidity
-* density
+* density_column
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+library(car)
+leveneTest(total.sulfur.dioxide ~ color, data = totalData[,c(1,2,3,4,5,6,7,9,10,13,14,15)])
+
+```
+
+Como el p-valor es menor que 0.05 se rechaza la hipotesis nula de homocedasticidad y se concluye que la variable total.sulful.dioxide presenta varianzas estadisticamente diferentes para los dos tipos de vino.
+
 
 
 # Otros gráicos
