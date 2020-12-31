@@ -80,9 +80,7 @@ Descripción de las variables:
 str(totalData)
 ```
 
-
 Seguimos observando el tipo de datos presente en nuestro conjunto de datos.
-
 
 4. Valores nulos o perdidos
 
@@ -102,8 +100,8 @@ colSums(totalData==0.0)
 ```
 Se identifican 151 valores en 0 para el campo citric.acid, pero según el analisis preliminar de los datos es posible que sea un valor valido ya que no esta fuera del rango
 
-5. Outliers
 
+5. Outliers
 
 Aplicamos un boxplot a cada una de las variables para verificar la existencia de outliers
 
@@ -115,40 +113,26 @@ boxplot(totalData$volatile.acidity)
 
 boxplot(totalData$citric.acid)
 
-
 boxplot(totalData$residual.sugar)
-
 
 boxplot(totalData$chlorides)
 
-
 boxplot(totalData$free.sulfur.dioxide)
-
 
 boxplot(totalData$total.sulfur.dioxide)
 
-
 boxplot(totalData$density)
-
 
 boxplot(totalData$pH)
 
-
 boxplot(totalData$sulphates)
 
-
 boxplot(totalData$alcohol)
-
 
 boxplot(totalData$quality)
 
 
-
-
-
-
 ```
-
 
 Identificamos las columnas que presentan outliers para realizar la sustitución, pero sólo aquellas variables que presentan valores con una distancia grande, en este caso son las siguientes variales
 
@@ -157,7 +141,6 @@ Identificamos las columnas que presentan outliers para realizar la sustitución,
 3. free.sulfur.dioxide
 4. density
 5. alcohol
-
 
 
 ```{r}
@@ -188,7 +171,6 @@ totalData <- totalData%>%mutate(density_column=density_column)
 ```
 
 
-
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
 
@@ -199,7 +181,6 @@ alcohol_column <- impute_outliers(totalData$alcohol)
 totalData <- totalData%>%mutate(alcohol_column=alcohol_column)
 
 ```
-
 
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -213,19 +194,15 @@ totalData <- totalData%>%mutate(quality_column=quality_column)
 
 ```
 
-
 Muestra del boxplot de una de las nuevas columnas
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-
 
 boxplot(totalData$density_column)
 
 ```
 
-
 # Análisis exploratiorio
-
 
 1. Planficiación
 
@@ -291,12 +268,30 @@ hist(totalData$quality_column)
 De acuerdon la prueba de kolmorogov y gráficos, las variables presentan una distribución normal en los valores.
 
 
+2.2 Homogeneidad para cada una de las variables
+
+En el siguiente test, la hipótesis nula consiste en que ambas varianzas son iguales
+```{r}
+fligner.test( citric.acid ~ color, data = totalData)
+fligner.test( fixed.acidity ~ color, data = totalData)
+fligner.test( volatile.acidity ~ color, data = totalData)
+fligner.test( residual.sugar ~ color, data = totalData)
+fligner.test( chlorides ~ color, data = totalData)
+fligner.test( free.sulfur.dioxide ~ color, data = totalData)
+fligner.test( total.sulfur.dioxide ~ color, data = totalData)
+fligner.test( density ~ color, data = totalData)
+fligner.test( pH ~ color, data = totalData)
+fligner.test( sulphates ~ color, data = totalData)
+fligner.test( quality ~ color, data = totalData)
+
+```
+Puesto que obtenemos un p-valor inferior a 0,05, negamos la hipótesis de que las varianzas de ambas muestras son homogéneas, excepto para el caso de quality by color.
+
+
 3. Aplicación de pruebas
 
 
 3.1 Ahora analizaremos las variables más importantes según el color del vino o tipo
-
-
 
 ```{r message= FALSE, warning=FALSE}
 
@@ -316,7 +311,6 @@ modelo_randforest <- randomForest(formula = color ~ . ,
                                   ntree = 1000)
 
 ```
-
 
 3.2 Ver gráfico sobre variables más importantes para determinar el color
 
@@ -370,5 +364,30 @@ leveneTest(total.sulfur.dioxide ~ color, data = totalData[,c(1,2,3,4,5,6,7,9,10,
 Como el p-valor es menor que 0.05 se rechaza la hipotesis nula de homocedasticidad y se concluye que la variable total.sulful.dioxide presenta varianzas estadisticamente diferentes para los dos tipos de vino.
 
 
+3.3 Ahora analizaremos los componentes principales (ACP)
+
+ Dado que el ACP funciona principalmente con datos numéricos, se excluyen las variables categóricas de la muestra en este caso color, dejando 12 atributos
+
+```{r}
+totalData.pca <- prcomp(totalData[,c(1:12)], center = TRUE, scale = TRUE)
+summary(totalData.pca)
+
+````
+El resultado son 11 componentes principales (PC1-PC12), cada una de los cuales explica un porcentaje de varianza del dataset original. Así, los tres primeros componentes describen el 64 % de la varianza. Dado que las ocho primeros componentes ya explican el 95 % de la varianza, se podría trabajar solo con este subconjunto (PC1-PC8), que contiene prácticamente la totalidad de la información contenida en el conjunto de datos original. Además del resultado de aplicar esta función permite analizar los pesos asociados a cada atributo en la transformación lineal aplicada por el ACP resultante.
+
+
+3.4 Ahora analizaremos la correlación entre las diferentes variables
+
+```{r}
+cor(totalData[,c(1:12)])
+```
+Con esto identificamos cuales son las variables mas relacionadas entre sí, en funcion de su proximidad con los valores -1 y +1, tambien las menos relacionadas con valores iguales o muy cercanas a 0; los campos con mayor correlación es la density con fixed.acidity, residual.sugar y alcohol
+
+Ahora vamos a probar la correlación entre las variables con mayor porcentaje de la validación anterior:
+```{r}
+cor.test(totalData$density,totalData$alcohol)
+cor.test(totalData$density,totalData$alcohol, method="spearman",exact = FALSE)
+````
+Sería erróneo afirmar que esta correlación es de 0,68 ya que nos estaríamos basando en el resultado del test de Pearson, que supone normalidad en los datos.
 
 # Otros gráicos
