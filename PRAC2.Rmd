@@ -291,7 +291,7 @@ Puesto que obtenemos un p-valor inferior a 0,05, negamos la hipótesis de que la
 3. Aplicación de pruebas
 
 
-3.1 Ahora analizaremos las variables más importantes según el color del vino o tipo
+3.1 Ahora analizaremos las variables más importantes según el color del vino o tipo, para ser considerados en estudios posteriores
 
 ```{r message= FALSE, warning=FALSE}
 
@@ -354,14 +354,6 @@ Según el random forest, las variables más importantes para identificar el vino
 * volatile.acidity
 * density_column
 
-```{r echo=TRUE, message=FALSE, warning=FALSE}
-
-library(car)
-leveneTest(total.sulfur.dioxide ~ color, data = totalData[,c(1,2,3,4,5,6,7,9,10,13,14,15)])
-
-```
-
-Como el p-valor es menor que 0.05 se rechaza la hipotesis nula de homocedasticidad y se concluye que la variable total.sulful.dioxide presenta varianzas estadisticamente diferentes para los dos tipos de vino.
 
 
 3.3 Ahora analizaremos los componentes principales (ACP)
@@ -372,11 +364,11 @@ Como el p-valor es menor que 0.05 se rechaza la hipotesis nula de homocedasticid
 totalData.pca <- prcomp(totalData[,c(1:12)], center = TRUE, scale = TRUE)
 summary(totalData.pca)
 
-````
+```
 El resultado son 11 componentes principales (PC1-PC12), cada una de los cuales explica un porcentaje de varianza del dataset original. Así, los tres primeros componentes describen el 64 % de la varianza. Dado que las ocho primeros componentes ya explican el 95 % de la varianza, se podría trabajar solo con este subconjunto (PC1-PC8), que contiene prácticamente la totalidad de la información contenida en el conjunto de datos original. Además del resultado de aplicar esta función permite analizar los pesos asociados a cada atributo en la transformación lineal aplicada por el ACP resultante.
 
 
-3.4 Ahora analizaremos la correlación entre las diferentes variables
+3.4 Después analizaremos la correlación entre las diferentes variables
 
 ```{r}
 cor(totalData[,c(1:12)])
@@ -387,7 +379,24 @@ Ahora vamos a probar la correlación entre las variables con mayor porcentaje de
 ```{r}
 cor.test(totalData$density,totalData$alcohol)
 cor.test(totalData$density,totalData$alcohol, method="spearman",exact = FALSE)
-````
+```
 Sería erróneo afirmar que esta correlación es de 0,68 ya que nos estaríamos basando en el resultado del test de Pearson, que supone normalidad en los datos.
+
+3.5 Relación entre el total de dioxido de sulfuro y tipo de vino
+
+
+```{r}
+
+total_sulfuro_white <- totalData[totalData$color == "White",]$total.sulfur.dioxide
+total_sulfuro_red <- totalData[totalData$color == "Red",]$total.sulfur.dioxide
+
+t.test(total_sulfuro_red, total_sulfuro_white, alternative = "less")
+
+
+```
+
+Como el valor de p-value es menor que el nivel de significancia, se puede concluir que el total de sulfuro es mayor si el tipo de vino es blanco.
+
+
 
 # Otros gráicos
