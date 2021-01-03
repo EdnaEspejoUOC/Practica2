@@ -403,17 +403,14 @@ Como el valor de p-value es menor que el nivel de significancia, se puede conclu
 
 1. El siguiente gráfico nos ayudará a entender mejor la distribución de las variables, y puedes apoyar el proceso de toma de decisiones:
 ```{r}
-qplot(quality, data = data, fill = color, binwidth = 1) +
-    scale_x_continuous(breaks = seq(3,10,1), lim = c(3,10)) +
-    scale_y_sqrt()
+qplot(quality, data = totalData, fill = color, binwidth = 1)
 
-qplot(density, data = data, fill = color, binwidth = 0.0002) +
+qplot(density, data = totalData, fill = color, binwidth = 0.0002) +
     scale_x_log10(lim = c(min(data$density), 1.00370), 
                   breaks = seq(min(data$density), 1.00370, 0.002))
 
-qplot(alcohol, data = data, fill = color, binwidth = 0.0002) +
-    scale_x_log10(lim = c(min(data$alcohol), 1.00370), 
-                  breaks = seq(min(data$alcohol), 1.00370, 0.002))
+
+qplot(alcohol, data = totalData, geom = "histogram", fill= color, binwidth = 0.4)
 
 ```
 
