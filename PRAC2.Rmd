@@ -414,3 +414,13 @@ qplot(alcohol, data = totalData, geom = "histogram", fill= color, binwidth = 0.4
 
 ```
 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+hist(x = totalData$total.sulfur.dioxide, main = "Histograma de total de dioxido de sulfuro a nivel general", 
+     xlab = "Dioxido de sulfuro", ylab = "Frecuencia")
+```
+
+
+Como se puede ver las cantidad totales se encuentran en el intervalo entre 100 y 150
+
+
